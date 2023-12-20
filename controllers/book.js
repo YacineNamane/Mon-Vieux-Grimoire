@@ -4,12 +4,13 @@ const Book = require("../models/Book");
 //créer un livre " post " - creatBook
 
 exports.creatBook = async (req, res) => {
+  delete req.body._id;
   try {
     //je crée une nouvelle instance aavec les donnée de la requete du user
     const newBook = new Book({
       ...req.body,
       //s'il y'a une image dasn sa requete je récupère sinon null
-      imageUrl: req.file ? req.file.path : null,
+      imageUrl: req.file ? `/uploadsimages/${req.file.filename}` : null,
       //ici sois j'impose un rating sois je laisse par defaut et vu que c'est une fonctionnelité du  site on laisse par defaut 0
       ratings: [],
       averageRating: 0,
@@ -41,7 +42,7 @@ exports.getAllBooks = async (req, res) => {
   }
 };
 
-//Récupérer kes détail d'un seul livre " get " - getBookDetails
+//Récupérer les détail d'un seul livre " get " - getBookDetails
 
 exports.getBookDetails = async (req, res) => {
   try {
