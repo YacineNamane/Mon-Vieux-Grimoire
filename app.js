@@ -35,13 +35,12 @@ app.use((req, res, next) => {
 
 //je met en place le bodyparser pour analyser le corp de l'a requete post lors de l'ajout
 app.use(bodyParser.json());
-
+app.use(
+  "/uploadsimages",
+  express.static(path.join(__dirname, "uploadsimages"))
+);
 // j'éxploite " express.Routrer() " pour aléger ce file en séparons mes routes dans un dossier dédier a ces dernier " routes"
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
-app.use(
-  "./uploadsimages",
-  express.static(path.join(__dirname, "uploadsimages"))
-);
 
 module.exports = app;

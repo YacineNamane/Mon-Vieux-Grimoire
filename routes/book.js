@@ -1,35 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
 const bookController = require("../controllers/book");
 const auth = require("../middleware/auth");
-
-//mise en place de mutler pour gérer mes file dans mon cas les images
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploadsimages/"); // Dossier où seront stockées mes images
-  },
-  filename: function (req, file, cb) {
-    // Vérifier l'extension du fichier
-    const validExtensions = ["jpg", "jpeg", "png"];
-    const fileExtension = file.originalname.split(".").pop().toLowerCase();
-    if (validExtensions.includes(fileExtension)) {
-      cb(null, Date.now() + "-" + file.originalname);
-    } // Nom des images avec une approche simple et logique
-    else {
-      // Retourner une erreur pour un format de fichier non autorisé
-      cb(new Error("Format de fichier non autorisé"));
-    }
-  },
-});
-
-const upload = multer({ storage: storage });
+const multer = require("../middleware/multerconfig");
 
 // ==> Route GET pour récupérer tous les livres
-router.get("/", bookController.getAllBooks);
+router.get("/", multer, bookController.getAllBooks);
 
-//je crée une nouvelle instance a partir de la  requete "données rentrée par un  utilisateur"
-router.post("/", auth, upload.single("image"), bookController.creatBook);
+// ==> show 3 best rating books
+router.get("/bestrating", bookController.getBestRatedBooks);
+
+// ==> rate book
+router.post("/:id/rating", auth, bookController.rateBook);
 
 // ==> Route pour récupérer les détails d'un livre par ID
 router.get("/:id", bookController.getBookDetails);
@@ -38,6 +20,9 @@ router.get("/:id", bookController.getBookDetails);
 router.delete("/:id", auth, bookController.deleteBook);
 
 // ==> Ajouter la route PUT pour mettre à jour un livre
-router.put("/:id", auth, upload.single("image"), bookController.modifyBook);
+router.put("/:id", auth, multer, bookController.modifyBook);
+
+//je crée une nouvelle instance a partir de la  requete "données rentrée par un  utilisateur"
+router.post("/", auth, multer, bookController.creatBook);
 
 module.exports = router;
