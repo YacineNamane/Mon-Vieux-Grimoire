@@ -15,7 +15,7 @@ exports.creatBook = async (req, res) => {
     //je crée une nouvelle instance aavec les donnée de la requete du user
     const newBook = new Book({
       ...bookData,
-      //s'il y'a une image dasn sa requete je récupère sinon null
+      //s'il y'a une image dans sa requete je récupère sinon null
       imageUrl: `${req.protocol}://${req.get("host")}/uploadsimages/${
         req.file.filename
       }`,
@@ -126,39 +126,38 @@ exports.deleteBook = async (req, res, next) => {
   }
 };
 
+// Modifier les données d'un livre
+
 exports.modifyBook = async (req, res) => {
+  const bookObject = req.file
+    ? {
+        ...req.body,
+        imageUrl: `${req.protocol}://${req.get("host")}/uploadsimages/${
+          req.file.filename
+        }`,
+      }
+    : { ...req.body };
+
   try {
-    // Récupérer le livre existant par ID
     const existingBook = await Book.findOne({ _id: req.params.id });
 
     if (!existingBook) {
       return res.status(404).json({ message: "Livre non trouvé" });
     }
 
-    // Mettre à jour les champs du livre avec les nouvelles valeurs sinon je préserve l'ancienne
-    existingBook.title = req.body.title || existingBook.title;
-    existingBook.author = req.body.author || existingBook.author;
-    existingBook.year = req.body.year || existingBook.year;
-    existingBook.genre = req.body.genre || existingBook.genre;
-
-    // Mettre à jour l'image si une nouvelle image est fournie
-
-    if (req.file) {
-      // Supprimer l'ancienne image si elle existe
-      if (existingBook.imageUrl) {
-        fs.unlinkSync(existingBook.imageUrl);
-      }
-
-      existingBook.imageUrl = req.file.path;
+    if (existingBook.userId !== req.userData.userId) {
+      return res.status(401).json({ message: "Vous n'êtes pas autorisé" });
     }
 
-    // Enregistrer les modifications dans la base de données
-    const updatedBook = await existingBook.save();
+    await Book.updateOne(
+      { _id: req.params.id },
+      { ...bookObject, _id: req.params.id }
+    );
 
-    res.json({ message: "Livre mis à jour avec succès", book: updatedBook });
+    res.status(200).json({ message: "Livre modifié avec succès" });
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du livre :", error);
-    res.status(500).json({ error: "Erreur lors de la mise à jour du livre" });
+    console.error("Erreur lors de la modification du livre :", error);
+    res.status(500).json({ error: "Erreur lors de la modification du livre" });
   }
 };
 
@@ -232,9 +231,9 @@ exports.rateBook = async (req, res) => {
     // Mettre à jour la moyenne de notation dans le livre
     updatedBook.averageRating = averageRating;
 
-    await updatedBook.save();
+    return await updatedBook.save();
 
-    res.json(updatedBook);
+    //res.json(updatedBook);
   } catch (error) {
     console.error("Erreur lors de la notation du livre :", error);
     res.status(500).json({

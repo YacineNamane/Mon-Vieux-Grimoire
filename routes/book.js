@@ -16,10 +16,10 @@ router.post("/:id/rating", auth, bookController.rateBook);
 // ==> Route pour récupérer les détails d'un livre par ID
 router.get("/:id", bookController.getBookDetails);
 
-// ==> Ajouter la route DELETE pour supprimer un livre
+// ==>  route DELETE pour supprimer un livre
 router.delete("/:id", auth, bookController.deleteBook);
 
-// ==> Ajouter la route PUT pour mettre à jour un livre
+// ==>  route PUT pour mettre à jour un livre
 router.put("/:id", auth, multer, bookController.modifyBook);
 
 //je crée une nouvelle instance a partir de la  requete "données rentrée par un  utilisateur"
