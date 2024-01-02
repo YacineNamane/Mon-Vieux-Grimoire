@@ -7,9 +7,9 @@ const bookSchema = mongoose.Schema({
   author: { type: String },
   year: { type: Number },
   genre: { type: String },
-  rating: [
+  ratings: [
     {
-      userId: { type: String, unique: true }, // utilisateur pourra noter une seule fois.
+      userId: { type: String }, // utilisateur pourra noter une seule fois.
       grade: { type: Number },
     },
   ],

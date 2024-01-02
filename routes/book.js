@@ -23,6 +23,6 @@ router.delete("/:id", auth, bookController.deleteBook);
 router.put("/:id", auth, multer, bookController.modifyBook);
 
 //je crée une nouvelle instance a partir de la  requete "données rentrée par un  utilisateur"
-router.post("/", auth, multer, bookController.creatBook);
+router.post("/", auth, multer, bookController.createBook);
 
 module.exports = router;

@@ -1,29 +1,44 @@
 const fs = require("fs");
 const Book = require("../models/Book");
 const mongoose = require("mongoose");
+const sharp = require("sharp");
 const path = require("path");
 
 //créer un livre " post " - creatBook
 
-exports.creatBook = async (req, res) => {
+exports.createBook = async (req, res) => {
   console.log(req.body);
   delete req.body._id;
   try {
     // Parse le champ book de la requête JSON
     const bookData = JSON.parse(req.body.book);
+    console.log(bookData);
+
+    // Chemin du fichier téléchargé par Multer
+    const imagePath = `./uploadsimages/${req.file.filename}`;
+
+    // Utilisez Sharp pour redimensionner ou effectuer d'autres opérations sur l'image
+    await sharp(imagePath)
+      .resize({ width: 260, height: 260 })
+      .toFormat("jpeg", { quality: 80 })
+      .withMetadata(false) // Supprime les métadonnées
+      .toFile(`./uploadsimages/${req.file.filename}-resized.jpg`);
 
     //je crée une nouvelle instance aavec les donnée de la requete du user
     const newBook = new Book({
       ...bookData,
+
       //s'il y'a une image dans sa requete je récupère sinon null
       imageUrl: `${req.protocol}://${req.get("host")}/uploadsimages/${
         req.file.filename
-      }`,
+      }-resized.jpg`,
+
       //ici sois j'impose un rating sois je laisse par defaut et vu que c'est une fonctionnelité du  site on laisse par defaut 0
       ratings: [],
       averageRating: 0,
     });
     console.log(newBook);
+
     // j'enregistre  le livre dans la base de données
     const savedBook = await newBook.save();
 
@@ -183,57 +198,48 @@ exports.getBestRatedBooks = async (req, res) => {
 
 // Notation d'un liste " post "
 
-exports.rateBook = async (req, res) => {
+exports.rateBook = async function postRating(req, res) {
   try {
     const bookId = req.params.id;
     const userId = req.body.userId;
     const grade = req.body.rating;
 
-    // Valider la note  entre 0 et 5)
+    // Valider la note entre 0 et 5
     if (grade < 0 || grade > 5) {
       return res
         .status(400)
         .json({ message: "La note doit être entre 0 et 5" });
     }
 
-    // je vérifie si l'utilisateur a déjà noté ce livre ou non
-    const existingRating = await Book.findOne({
-      _id: bookId,
-      "rating.userId": userId,
-    });
+    // Vérifier si le livre existe dans la base de données
+    const book = await Book.findById(bookId);
 
-    if (existingRating) {
-      return res.status(400).json({ message: "Vous avez déjà noté ce livre" });
-    }
-
-    // je met a jour la notation au livre
-    const updatedBook = await Book.findByIdAndUpdate(
-      bookId,
-      {
-        $push: { rating: { userId, grade } },
-      },
-      { new: true }
-    );
-
-    if (!updatedBook) {
+    if (!book) {
       return res.status(404).json({ message: "Livre non trouvé" });
     }
 
-    // Recalculer la moyenne de notation du livre
-    const totalRating = updatedBook.rating
-      ? updatedBook.rating.reduce((total, rating) => total + rating.grade, 0)
-      : 0;
+    // Vérifier si l'utilisateur a déjà noté ce livre ou non
+    const alreadyVoted =
+      book.rating && book.rating.find((r) => r.userId === userId);
 
-    const averageRating = updatedBook.rating
-      ? totalRating / updatedBook.rating.length
-      : 0;
+    if (alreadyVoted) {
+      return res.status(400).json({ message: "Vous avez déjà noté ce livre" });
+    }
+
+    // Mettre à jour la notation du livre
+    book.ratings.push({ userId, grade });
+
+    // Recalculer la moyenne de notation du livre
+    const totalRating = book.ratings.reduce((total, r) => total + r.grade, 0);
+    const averageRating = totalRating / book.ratings.length;
 
     // Mettre à jour la moyenne de notation dans le livre
-    updatedBook.averageRating = averageRating;
+    book.averageRating = averageRating;
 
-    return await updatedBook.save();
+    // Sauvegarder le livre mis à jour
+    const updatedBook = await book.save();
 
-    //res.json(updatedBook);
+    res.json(updatedBook);
   } catch (error) {
     console.error("Erreur lors de la notation du livre :", error);
     res.status(500).json({

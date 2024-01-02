@@ -39,6 +39,10 @@ app.use(
   "/uploadsimages",
   express.static(path.join(__dirname, "uploadsimages"))
 );
+app.use(
+  "/uploadsimages_sharp",
+  express.static(path.join(__dirname, "uploadsimages_sharp"))
+);
 // j'éxploite " express.Routrer() " pour aléger ce file en séparons mes routes dans un dossier dédier a ces dernier " routes"
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
