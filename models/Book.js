@@ -9,7 +9,7 @@ const bookSchema = mongoose.Schema({
   genre: { type: String },
   ratings: [
     {
-      userId: { type: String }, // utilisateur pourra noter une seule fois.
+      userId: { type: String },
       grade: { type: Number },
     },
   ],

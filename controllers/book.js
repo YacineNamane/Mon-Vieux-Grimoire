@@ -17,7 +17,8 @@ exports.createBook = async (req, res) => {
     // Chemin du fichier téléchargé par Multer
     const imagePath = `./uploadsimages/${req.file.filename}`;
 
-    // Utilisez Sharp pour redimensionner ou effectuer d'autres opérations sur l'image
+    // Gestion des images avec le sharp vu qu'on m'a rien imposé comme conditions j'ai mis en place certaines en sorte a optimiser ces dernières .
+
     await sharp(imagePath)
       .resize({ width: 260, height: 260 })
       .toFormat("jpeg", { quality: 80 })

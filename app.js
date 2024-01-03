@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const authRoutes = require("./routes/user");
 
 // Je connecte a ma base de données mongoDB
+
 mongoose
   .connect(
     "mongodb+srv://YacineNamane:1234@cluster0.xymbxwd.mongodb.net/?retryWrites=true&w=majority",
@@ -20,6 +21,7 @@ mongoose
   });
 
 // Middleware CORS
+
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -34,6 +36,7 @@ app.use((req, res, next) => {
 });
 
 //je met en place le bodyparser pour analyser le corp de l'a requete post lors de l'ajout
+
 app.use(bodyParser.json());
 app.use(
   "/uploadsimages",
@@ -43,7 +46,9 @@ app.use(
   "/uploadsimages_sharp",
   express.static(path.join(__dirname, "uploadsimages_sharp"))
 );
+
 // j'éxploite " express.Routrer() " pour aléger ce file en séparons mes routes dans un dossier dédier a ces dernier " routes"
+
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
 
