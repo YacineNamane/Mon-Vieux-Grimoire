@@ -33,6 +33,7 @@ exports.signup = async (req, res) => {
 };
 
 // Connexion
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -53,7 +54,7 @@ exports.login = async (req, res) => {
 
     // Générer un token JWT
     const token = jwt.sign({ userId: user._id }, "votre_clé_secrète", {
-      expiresIn: "24h",
+      expiresIn: "1h",
     });
 
     res.status(200).json({ userId: user._id, token });

@@ -22,14 +22,14 @@ exports.createBook = async (req, res) => {
     await sharp(imagePath)
       .resize({ width: 260, height: 260 })
       .toFormat("jpeg", { quality: 80 })
-      .withMetadata(false) // Supprime les métadonnées
+      .withMetadata(false) // Suppression les métadonnées
       .toFile(`./uploadsimages/${req.file.filename}-resized.jpg`);
 
     //je crée une nouvelle instance aavec les donnée de la requete du user
     const newBook = new Book({
       ...bookData,
 
-      //s'il y'a une image dans sa requete je récupère sinon null
+      //s'il y'a une image dans sa requete je récupère
       imageUrl: `${req.protocol}://${req.get("host")}/uploadsimages/${
         req.file.filename
       }-resized.jpg`,
@@ -38,7 +38,6 @@ exports.createBook = async (req, res) => {
       ratings: [],
       averageRating: 0,
     });
-    console.log(newBook);
 
     // j'enregistre  le livre dans la base de données
     const savedBook = await newBook.save();
@@ -105,6 +104,7 @@ exports.deleteBook = async (req, res, next) => {
       return res.status(404).json({ message: "Livre non trouvé" });
     }
 
+    // le livre n'appartient pas pas au user qui essaye de le delete
     if (book.userId !== req.userData.userId) {
       return res.status(401).json({ message: "Vous n'êtes pas autorisé" });
     }
